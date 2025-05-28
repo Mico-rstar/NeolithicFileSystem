@@ -1,16 +1,16 @@
 
 #pragma once
 
-
 #include "types.h"
 #include "fs.h"
+#include "sleeplock.h"
 
-struct buf {
-  int valid;   // has data been read from disk?
-  int disk;    // does disk "own" buf?
+struct buf
+{
+  SleepLock lock;
+  int valid; // has data been read from disk?
   uint blockno;
-  //struct sleeplock lock;
+  // struct sleeplock lock;
   uint refcnt;
-  uchar data[BSIZE];
+  uchar data[BSIZE] = {0};
 };
-

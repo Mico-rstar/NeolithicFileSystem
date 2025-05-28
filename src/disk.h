@@ -5,8 +5,8 @@
 class DiskDriver
 {
 private:
-    void read(struct buf &b);
-    void write(struct buf &b);
+    void read(const char *filename, struct buf &b);
+    void write(const char *filename, struct buf &b);
     void createFile(const char *filename, size_t sizeBytes);
 
 public:
