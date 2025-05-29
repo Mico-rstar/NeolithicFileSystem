@@ -2,4 +2,5 @@ img/
 *.o
 *.d
 *.tmp
+*.tst
 .vscode/

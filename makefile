@@ -21,7 +21,7 @@ all: $(TEST_EXES)
 
 # 编译测试可执行文件
 %: $(TEST_DIR)/%.cpp $(OBJS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@.o
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@.tst
 
 # 编译源文件
 $(SRC_DIR)/%.o: $(SRC_DIR)/%.cpp
@@ -30,5 +30,6 @@ $(SRC_DIR)/%.o: $(SRC_DIR)/%.cpp
 # 清理
 clean:
 	rm -f $(OBJS) $(TEST_EXES)
+	rm -f *.tst
 
 .PHONY: all clean
