@@ -32,15 +32,19 @@ void tesBget()
 void testBuffer()
 {
     Buffer buffer;
-    uint i = 3;
-    buf &b = buffer.bread(i);
-    printf("read from %d block: %s\n", i, b.data);
-    strcpy((char *)b.data, "Hello hahha");
-    buffer.bwrite(b);
-    buf &newb = buffer.bread(i);
-    printf("read from %d block: %s\n", i, newb.data);
-    buffer.brelse(b);
-    buffer.brelse(newb);
+    for (uint i = 0; i < 100; i++)
+    {
+        buf &b = buffer.bread(i);
+        printf("1. read from %d block: %s\n", i, b.data);
+        char str[100];
+        sprintf(str, "woaigiegie%d", i);
+        strcpy((char *)b.data, str);
+        buffer.bwrite(b);
+        buffer.brelse(b);
+        buffer.bread(b.blockno);
+        printf("2. read from %d block: %s\n", i, b.data);
+        buffer.brelse(b);
+    }
 }
 
 int main()

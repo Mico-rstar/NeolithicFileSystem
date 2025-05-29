@@ -30,4 +30,8 @@ struct buf
     valid = false;
   }
 
+  void print() const
+  {
+    printf("blockno = %d, refcnt = %d, valid = %d, data = %s\n", blockno, refcnt, valid, data);
+  }
 };

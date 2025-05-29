@@ -17,12 +17,12 @@ class Bcache
 private:
     SleepLock lock;
 
-    std::vector<buf *> bheap;            // buf heap
-    std::unordered_map<uint, uint> imap; // index map
+    std::vector<buf *> bheap;           // buf heap
+    std::unordered_map<int, uint> imap; // index map
 
     void siftUp(size_t index);
     void siftDown(size_t index);
-    void swap(size_t i, size_t j);
+    void swap(uint i, uint j);
     void heapify(const std::vector<buf *> &bufs);
 
 public:

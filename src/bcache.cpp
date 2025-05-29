@@ -38,6 +38,7 @@ void Bcache::siftDown(size_t index)
         if (smallest != index)
         {
             // 更新哈希表
+            // printf("%d. %d\n", index, smallest);
             this->swap(index, smallest);
             index = smallest;
         }
@@ -46,15 +47,17 @@ void Bcache::siftDown(size_t index)
     }
 }
 
-void Bcache::swap(size_t i, size_t j)
+void Bcache::swap(uint i, uint j)
 {
-
+    // printf("l\n");
+    // bheap[i]->print();
+    // printf("imap[bheap[i]->blockno]=%d\n", imap[bheap[i]->blockno]);
     std::swap(bheap[i], bheap[j]);
 
-    if (bheap[i]->blockno != -1)
-        imap[bheap[i]->blockno] = j;
-    if (bheap[i]->blockno != -1)
-        imap[bheap[j]->blockno] = i;
+    // if (bheap[i]->blockno != -1)
+        imap[bheap[i]->blockno] = i;
+    // if (bheap[i]->blockno != -1)
+        imap[bheap[j]->blockno] = j;
 }
 
 void Bcache::heapify(const std::vector<buf *> &bufs)
@@ -99,12 +102,17 @@ buf &Bcache::bget(uint blockno)
         if (!imap.count(blockno))
             dbg::panic("bget: imap");
         buf *b = bheap[imap[blockno]];
+        // printf("blockno=%d, imap[blockno]=%d\n", blockno, imap[blockno]);
+        // bheap[imap[blockno]]->print();
         b->refcnt++;
         // update
         siftDown(imap[blockno]);
 
         if (!b->valid)
-            dbg::panic("bget");
+        {
+            // b->print();
+            dbg::panic("bget: valid");
+        }
         this->lock.release();
         b->lock.acquire();
         return *b;
@@ -120,8 +128,11 @@ buf &Bcache::bget(uint blockno)
         b->blockno = blockno;
         // update
         imap[blockno] = 0;
-        printf("blockno=%d, imap[blockno]=%d, imap.count(blockno)=%d\n", blockno, imap[blockno], imap.count(blockno));
+        // b->print();
         siftDown(0);
+
+        // printf("sa imap[blockno]=%d\n", imap[blockno]);
+        // bheap[imap[blockno]]->print();
 
         this->lock.release();
         b->lock.acquire();
@@ -142,7 +153,7 @@ void Bcache::brelease(buf &b)
     b.refcnt--;
     if (!imap.count(b.blockno))
     {
-        printf("brelease: blockno=%d\n", b.blockno);
+        // printf("brelease: blockno=%d\n", b.blockno);
         dbg::panic("brelease: imap");
     }
     // update
