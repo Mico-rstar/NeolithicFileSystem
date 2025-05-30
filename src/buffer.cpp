@@ -19,7 +19,7 @@ buf &Buffer::bread(uint blockno)
 void Buffer::bwrite(buf &b)
 {
     if (!b.lock.holding())
-        dbg::panic("bwrite: lock");
+        dbg::panic("Buffer::bwrite: lock");
 
     this->disk.virtio_disk_rw(b, 1);
 }
@@ -27,7 +27,7 @@ void Buffer::bwrite(buf &b)
 void Buffer::brelse(buf &b)
 {
     if (!b.lock.holding())
-        dbg::panic("brelse: lock");
+        dbg::panic("Buffer::brelse: lock");
     bcache.brelease(b);
 }
 

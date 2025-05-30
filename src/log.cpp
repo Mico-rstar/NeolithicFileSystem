@@ -12,6 +12,10 @@ void Logger::writeTrans()
         buf &from = bf.bread(log.lh.block[i]);
         buf &to = bf.bread(log.start + i + 1);
         std::memmove(&to, &from, BSIZE);
+
+        // ----------
+        to.blockno = log.start + i + 1;
+
         bf.bwrite(to);
         bf.brelse(from);
         bf.brelse(to);
@@ -43,9 +47,14 @@ void Logger::installTrans(int recovering)
         buf &to = bf.bread(log.lh.block[i]);
 
         std::memmove(&to, &from, BSIZE);
+
+        // ------------
+        to.blockno = log.lh.block[i];
+
         bf.bwrite(to);
         if (recovering == 0)
             bf.bunpin(to);
+
         bf.brelse(to);
         bf.brelse(from);
     }

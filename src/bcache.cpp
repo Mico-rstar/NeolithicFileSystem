@@ -139,16 +139,17 @@ buf &Bcache::bget(uint blockno)
 void Bcache::brelease(buf &b)
 {
     if (!b.lock.holding())
-        dbg::panic("brelease: lock");
+        dbg::panic("Bcache::brelease: lock");
     if (b.refcnt <= 0)
-        dbg::panic("brelease: refcnt");
+        dbg::panic("Bcache::brelease: refcnt");
 
     this->lock.acquire();
 
     b.refcnt--;
     if (!imap.count(b.blockno))
     {
-        dbg::panic("brelease: imap");
+        b.print();
+        dbg::panic("Bcache::brelease: imap");
     }
 
     // update
@@ -196,11 +197,11 @@ void Bcache::bunpin(buf &b)
     if (b.refcnt == 0)
     {
         // remove
-        imap.erase(b.blockno);
-        b.blockno = -1;
-        b.valid = false;
+        // imap.erase(b.blockno);
+        // b.blockno = -1;
+        // b.valid = false;
+        dbg::panic("Bcache::bunpin: refcnt");
     }
-    b.lock.release();
 
     this->lock.release();
 }
