@@ -32,6 +32,6 @@ struct buf
 
   void print() const
   {
-    printf("blockno = %d, refcnt = %d, valid = %d, data = %s\n", blockno, refcnt, valid, data);
+    printf("blockno = %d, refcnt = %d, valid = %d, data = %s, locked=%d\n", blockno, refcnt, valid, data, lock.holding());
   }
 };

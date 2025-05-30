@@ -30,4 +30,6 @@ public:
     buf &bget(uint blockno);
 
     void brelease(buf &buf);
+    void bpin(buf &);
+    void bunpin(buf &);
 };

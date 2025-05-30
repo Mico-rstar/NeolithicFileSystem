@@ -15,4 +15,6 @@ public:
     buf &bread(uint);
     void bwrite(buf &);
     void brelse(buf &);
+    void bpin(buf &);
+    void bunpin(buf &);
 };
