@@ -49,13 +49,13 @@ void Bcache::siftDown(size_t index)
 
 void Bcache::swap(uint i, uint j)
 {
-    
+
     std::swap(bheap[i], bheap[j]);
 
     // if (bheap[i]->blockno != -1)
-        imap[bheap[i]->blockno] = i;
+    imap[bheap[i]->blockno] = i;
     // if (bheap[i]->blockno != -1)
-        imap[bheap[j]->blockno] = j;
+    imap[bheap[j]->blockno] = j;
 }
 
 void Bcache::heapify(const std::vector<buf *> &bufs)
@@ -126,8 +126,6 @@ buf &Bcache::bget(uint blockno)
         imap[blockno] = 0;
         siftDown(0);
 
-      
-
         this->lock.release();
         b->lock.acquire();
         return *b;
@@ -144,14 +142,65 @@ void Bcache::brelease(buf &b)
         dbg::panic("brelease: lock");
     if (b.refcnt <= 0)
         dbg::panic("brelease: refcnt");
+
+    this->lock.acquire();
+
     b.refcnt--;
     if (!imap.count(b.blockno))
     {
         dbg::panic("brelease: imap");
     }
+
     // update
-    this->lock.acquire();
     siftUp(imap[b.blockno]);
+    if (b.refcnt == 0)
+    {
+        // remove
+        imap.erase(b.blockno);
+        b.blockno = -1;
+        b.valid = false;
+    }
     this->lock.release();
     b.lock.release();
+}
+
+void Bcache::bpin(buf &b)
+{
+    if (!b.lock.holding())
+        dbg::panic("Bcache::bpin: lock");
+
+    this->lock.acquire();
+
+    b.refcnt++;
+    if (!imap.count(b.blockno))
+        dbg::panic("Bcache::bpin: imap");
+    // update
+    siftDown(imap[b.blockno]);
+
+    this->lock.release();
+}
+
+void Bcache::bunpin(buf &b)
+{
+    if (!b.lock.holding())
+        dbg::panic("Bcache::bpin: lock");
+
+    this->lock.acquire();
+
+    b.refcnt--;
+    if (!imap.count(b.blockno))
+        dbg::panic("Bcache::bpin: imap");
+
+    // update
+    siftUp(imap[b.blockno]);
+    if (b.refcnt == 0)
+    {
+        // remove
+        imap.erase(b.blockno);
+        b.blockno = -1;
+        b.valid = false;
+    }
+    b.lock.release();
+
+    this->lock.release();
 }

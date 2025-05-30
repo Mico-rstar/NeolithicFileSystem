@@ -30,3 +30,19 @@ void Buffer::brelse(buf &b)
         dbg::panic("brelse: lock");
     bcache.brelease(b);
 }
+
+void Buffer::bpin(buf &b)
+{
+    if (!b.lock.holding())
+        dbg::panic("Buffer.bpin: lock");
+
+    bcache.bpin(b);
+}
+
+void Buffer::bunpin(buf &b)
+{
+    if (!b.lock.holding())
+        dbg::panic("Buffer.bpin: lock");
+
+    bcache.bunpin(b);
+}
