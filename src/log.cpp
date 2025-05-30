@@ -13,7 +13,7 @@ void Logger::writeTrans()
         buf &to = bf.bread(log.start + i + 1);
         std::memmove(&to, &from, BSIZE);
 
-        // ----------
+        // -----确保blockno不改变-----
         to.blockno = log.start + i + 1;
 
         bf.bwrite(to);
@@ -48,7 +48,7 @@ void Logger::installTrans(int recovering)
 
         std::memmove(&to, &from, BSIZE);
 
-        // ------------
+        // -----确保blockno不改变-----
         to.blockno = log.lh.block[i];
 
         bf.bwrite(to);
