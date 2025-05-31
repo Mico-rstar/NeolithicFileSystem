@@ -28,7 +28,10 @@ private:
 
     void writeTrans();
     void writeHead();
+    void readHead();
     void installTrans(int recovering);
+    void commit();
+    void recover();
 
 public:
     Logger(superblock &sb);

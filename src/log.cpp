@@ -38,6 +38,21 @@ void Logger::writeHead()
     bf.brelse(b);
 }
 
+void Logger::readHead()
+{
+    if (!log.lock.holding())
+        dbg::panic("Logger::readTrans: lock");
+
+    buf &b = bf.bread(log.start);
+    LogHeader *hb = (LogHeader *)(b.data);
+    log.lh.cnt = hb->cnt;
+    for (uint i = 0; i < log.lh.cnt; i++)
+    {
+        hb->block[i] = log.lh.block[i];
+    }
+    bf.brelse(b);
+}
+
 // 从日志中读入数据，写道目标位置
 void Logger::installTrans(int recovering)
 {
@@ -60,9 +75,44 @@ void Logger::installTrans(int recovering)
     }
 }
 
+void Logger::commit()
+{
+    // ------ commit ------
+    // 1. 将更改的块写入log in disk
+    writeTrans(); // Write modified blocks from cache to log
+
+    // 2. 将log结构体写入log in disk
+    writeHead(); // Write header to disk -- the real commit
+
+    // 3. 将log中的数据写入到目标位置
+    installTrans(0); // Now install writes to home locations
+
+    // 4. 清空log：将空log结构体写入log in disk
+    log.lh.cnt = 0;
+    writeHead(); // Erase the transaction from the log
+}
+
+void Logger::recover()
+{
+    // ------ recover ------
+
+    // 1. 读取log结构体from disk
+    readHead(); // Write header to disk -- the real commit
+
+    // 2. 将log中的数据写入到目标位置
+    installTrans(1); // Now install writes to home locations
+
+    // 3. 清空log：将空log结构体写入log in disk
+    log.lh.cnt = 0;
+    writeHead(); // Erase the transaction from the log
+}
+
 Logger::Logger(superblock &sb) : log(sb.logstart, sb.nlog), bf()
 {
+    log.lock.acquire();
     // TODO: recover from log
+    recover();
+    log.lock.release();
 }
 
 void Logger::beginOP()
@@ -118,19 +168,11 @@ void Logger::endOP()
 {
     log.lock.acquire();
 
-    // ------ commit ------
-    // 1. 将更改的块写入log in disk
-    writeTrans(); // Write modified blocks from cache to log
-
-    // 2. 将log结构体写入log in disk
-    writeHead(); // Write header to disk -- the real commit
-
-    // 3. 将log中的数据写入到目标位置
-    installTrans(0); // Now install writes to home locations
-
-    // 4. 清空log：将空log结构体写入log in disk
-    log.lh.cnt = 0;
-    writeHead(); // Erase the transaction from the log
+    log.outstanding--;
+    if (log.outstanding == 0)
+    {
+        commit();
+    }
 
     log.lock.release();
 }

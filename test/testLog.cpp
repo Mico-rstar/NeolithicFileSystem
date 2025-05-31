@@ -8,7 +8,7 @@
 void testRW(Logger &logger)
 {
     logger.beginOP();
-    for(uint n = 50;n<60;n++)
+    for (uint n = 50; n < 60; n++)
     {
         buf &b = logger.read(n);
         printf("read from%d: %s\n", n, b.data);
@@ -23,7 +23,7 @@ void testRW(Logger &logger)
 
 int main()
 {
-    superblock sb(FSMAGIC, DSIZE, DSIZE / BSIZE, 0, LOGSIZE, 2, 2 + LOGSIZE, 2 + LOGSIZE + 1);
+    superblock sb(FSMAGIC, DSIZE / BSIZE, DSIZE / BSIZE, 0, LOGSIZE, 2, 2 + LOGSIZE, 2 + LOGSIZE + 1);
     Logger logger(sb);
     testRW(logger);
 }
