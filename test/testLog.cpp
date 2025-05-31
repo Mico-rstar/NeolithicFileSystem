@@ -23,7 +23,12 @@ void testRW(Logger &logger)
 
 int main()
 {
-    superblock sb(FSMAGIC, DSIZE / BSIZE, DSIZE / BSIZE, 0, LOGSIZE, 2, 2 + LOGSIZE, 2 + LOGSIZE + 1);
+    uint nmeta = 2 + LOGSIZE + NINODES;
+    uint nbitmap = (DSIZE - nmeta) / (8 * BSIZE) + 1;
+    superblock sb(FSMAGIC, DSIZE, DSIZE - nmeta - nbitmap,
+                  NINODES, LOGSIZE, nbitmap,
+                  2, 2 + LOGSIZE,
+                  2 + LOGSIZE + NINODES);
     Logger logger(sb);
     testRW(logger);
 }

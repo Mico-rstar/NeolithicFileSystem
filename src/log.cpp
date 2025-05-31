@@ -107,6 +107,7 @@ void Logger::recover()
     writeHead(); // Erase the transaction from the log
 }
 
+
 Logger::Logger(superblock &sb) : log(sb.logstart, sb.nlog), bf()
 {
     log.lock.acquire();

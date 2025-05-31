@@ -34,6 +34,7 @@ private:
     void recover();
 
 public:
+    friend class DiskInit;
     Logger(superblock &sb);
     void beginOP();
     void write(buf &buf);
