@@ -33,6 +33,8 @@ private:
     void commit();
     void recover();
 
+    
+
 public:
     friend class DiskInit;
     Logger(superblock &sb);

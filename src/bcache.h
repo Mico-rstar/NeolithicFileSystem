@@ -25,6 +25,7 @@ private:
     void swap(uint i, uint j);
     void heapify(const std::vector<buf *> &bufs);
 
+
 public:
     Bcache(buf bufs[], size_t size);
     buf &bget(uint blockno);

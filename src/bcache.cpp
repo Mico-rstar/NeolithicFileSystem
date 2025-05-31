@@ -66,6 +66,8 @@ void Bcache::heapify(const std::vector<buf *> &bufs)
     }
 }
 
+
+
 // bufs的生命周期应该覆盖bcache
 Bcache::Bcache(buf bufs[], size_t size) : bheap(size), imap(1.5 * size)
 {

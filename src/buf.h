@@ -30,6 +30,7 @@ struct buf
     valid = false;
   }
 
+
   void print() const
   {
     printf("blockno = %d, refcnt = %d, valid = %d, data = %s, locked=%d\n", blockno, refcnt, valid, data, lock.holding());

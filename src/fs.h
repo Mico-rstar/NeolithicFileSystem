@@ -7,6 +7,10 @@
 #define LOGSIZE (MAXOPBLOCKS * 3) // max data blocks in on-disk log
 #define NBUF (MAXOPBLOCKS * 3)    // size of disk block cache
 #define NINODES 200
+#define NDIRECT 12
+#define NINDIRECT (BSIZE/sizeof(uint))
+#define NBB 8*BSIZE               // number of bits per block
+
 
 // Disk layout:
 // [ boot block | super block | log | inode blocks | free bit map | data blocks]
@@ -18,7 +22,7 @@ struct superblock
     uint magic;      // Must be FSMAGIC
     uint size;       // Size of file system image (blocks)
     uint nblocks;    // Number of data blocks
-    uint ninodes;    // Number of inodes.
+    uint ninodes;    // Number of inode blocks.
     uint nlog;       // Number of log blocks
     uint nbitmap;    // Number of bitmap blocks
     uint logstart;   // Block number of first log block
