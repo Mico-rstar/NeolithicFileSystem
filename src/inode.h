@@ -4,7 +4,8 @@
 enum Type
 {
     FILE,
-    DIR
+    DIR,
+    FREE
 };
 // inode structure on disk
 struct dinode
@@ -37,6 +38,12 @@ struct itable
     SleepLock lock;
     inode inodes[ITBCAPACITY];
 };
+
+// Inodes per block.
+#define IPB           (BSIZE / sizeof(struct dinode))
+
+// Block containing inode i
+#define IBLOCK(i, sb)     ((i) / IPB + sb->inodestart)
 
 class Inode
 {
