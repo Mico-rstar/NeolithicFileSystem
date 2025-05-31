@@ -89,6 +89,11 @@ void initBitmap(Buffer &buffer, superblock &sb)
 
 void initDisk(Buffer &buffer, superblock &sb)
 {
+    // 清空磁盘
+    for (int i = 0; i < sb.size; i++)
+    {
+        bzero(buffer, i);
+    }
 
     // write superblock
     buf &b_sb = buffer.bread(1);
@@ -103,19 +108,13 @@ void initDisk(Buffer &buffer, superblock &sb)
 
     // bitmap
     initBitmap(buffer, sb);
-
-    // 将剩余块都写为0
-    for (int i = sb.bmapstart + sb.nbitmap; i < sb.size; i++)
-    {
-        bzero(buffer, i);
-    }
 }
 
 int main()
 {
     uint nmeta = 2 + LOGSIZE + NINODES;
-    uint nbitmap = (DSIZE/BSIZE - nmeta) / (8 * BSIZE) + 1;
-    superblock sb(FSMAGIC, DSIZE / BSIZE, DSIZE/BSIZE - nmeta - nbitmap,
+    uint nbitmap = (DSIZE / BSIZE - nmeta) / (8 * BSIZE) + 1;
+    superblock sb(FSMAGIC, DSIZE / BSIZE, DSIZE / BSIZE - nmeta - nbitmap,
                   NINODES, LOGSIZE, nbitmap,
                   2, 2 + LOGSIZE,
                   2 + LOGSIZE + NINODES);
