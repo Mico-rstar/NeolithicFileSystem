@@ -109,6 +109,22 @@ inode &Inode::ialloc(InodeStructure::Type type)
     }
 }
 
+void Inode::initRoot()
+{
+    int inum = ROOTINO;
+    dinode *dip;
+
+    // IBLOCK(inum, sb);
+    buf &b = logger().read(IBLOCK(inum, sb.inodestart));
+    dip = (dinode *)b.data + inum % IPB;
+
+    std::memset(dip, 0, sizeof(*dip));
+    dip->type = InodeStructure::DIR;
+    dip->nlink = 1;
+    logger().write(b); // mark it allocated on the disk
+    logger().relse(b);
+}
+
 // 复制一个修改的in-memory inode到磁盘。
 //  每个调用ip->xxx修改后必须调用。
 //  调用者必须持有ip->lock。
@@ -358,6 +374,33 @@ inode *Inode::dirlookup(inode &di, char *name, uint *poff)
     return nullptr;
 }
 
+void Inode::dirtree(inode &di, int cnt)
+{
+    uint off, inum;
+    dirent de;
+
+    if (di.type != InodeStructure::DIR)
+        dbg::panic("Inode::dirlookup: not DIR");
+
+    for (off = 0; off < di.size; off += sizeof(de))
+    {
+        if (readi(di, (char *)&de, off, sizeof(de)) != sizeof(de))
+            dbg::panic("Inode::dirlookup: read");
+        if (de.inum == 0)
+            continue;
+        for (int i = 0; i < cnt; i++)
+            printf("   ");
+        printf("%s \n", de.name);
+        if(strcmp(de.name, ".")==0 || strcmp(de.name, "..")==0) continue;
+        inode &in=iget(de.inum);
+        ilock(in);
+        if(in.type==InodeStructure::DIR) dirtree(in, cnt+1);
+        iunlock(in);
+        iput(in);
+
+    }
+}
+
 // add dir entry
 int Inode::dirlink(inode &dp, char *name, uint inum)
 {
@@ -473,4 +516,15 @@ inode *Inode::namex(char *path, int nameiparent, char *name)
         return 0;
     }
     return ip;
+}
+
+inode *Inode::namei(char *path)
+{
+    char name[DIRSIZ];
+    return namex(path, 0, name);
+}
+
+inode *Inode::nameiparent(char *path, char *name)
+{
+    return namex(path, 1, name);
 }

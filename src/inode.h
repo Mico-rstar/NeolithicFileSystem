@@ -1,3 +1,5 @@
+#pragma once
+
 #include "log.h"
 
 namespace InodeStructure
@@ -6,8 +8,8 @@ namespace InodeStructure
     enum Type
     {
         FREE,
-        FILE,
-        DIR
+        DIR,
+        FILE
 
     };
 };
@@ -61,7 +63,7 @@ private:
 
 public:
     Inode();
-// 单例模式
+    // 单例模式
     Logger &logger()
     {
         static Logger instance(sb); // 延迟构造（函数首次调用时）
@@ -83,11 +85,16 @@ public:
 
     int readi(inode &i, char *dst, uint off, uint n);
     int writei(inode &i, char *src, uint off, uint n);
-    
 
     // dir operations
     inode *dirlookup(struct inode &di, char *name, uint *poff);
+    void dirtree(struct inode &di, int cnt);
 
     int dirlink(inode &di, char *name, uint inum);
     inode *namex(char *path, int nameiparent, char *name);
+
+    inode *namei(char *path);
+    inode *nameiparent(char *path, char *name);
+
+    void initRoot();
 };

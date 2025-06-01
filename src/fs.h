@@ -3,6 +3,8 @@
 
 #define ROOTINO  1   // root i-number
 
+#define NFILE 30
+
 #define BSIZE 1024                // block size
 #define DSIZE (8 * 1024 * 1024)   // disk size
 #define MAXOPBLOCKS 10            // max # of blocks any FS op writes
@@ -13,6 +15,7 @@
 #define NINDIRECT (BSIZE / sizeof(uint))
 #define NBB (8 * BSIZE) // number of bits per block
 #define MAXFILE (NDIRECT + NINDIRECT)
+#define MAXPATH      128   // maximum file path name
 
 // Disk layout:
 // [ boot block | super block | log | inode blocks | free bit map | data blocks]
