@@ -38,8 +38,9 @@ void Inode::bfree(uint block_num)
     // 偏移的bit
     uint bitoff = (block_num % NBB) % 8;
     buf &b = logger().read(sb.bmapstart + blockoff);
-    uchar byte = b.data[byteoff];
+    uchar &byte = b.data[byteoff];
     byte &= ~(1 << bitoff);
+    logger().write(b);
     logger().relse(b);
 }
 
