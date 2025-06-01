@@ -33,11 +33,9 @@ private:
     void commit();
     void recover();
 
-    
-
 public:
     friend class DiskInit;
-    Logger(superblock &sb);
+    Logger(const superblock &sb);
     void beginOP();
     void write(buf &buf);
     buf &read(uint blockno);

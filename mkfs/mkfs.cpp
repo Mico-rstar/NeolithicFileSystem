@@ -118,7 +118,7 @@ int main()
     uint nmeta = 2 + LOGSIZE + NIBLOCKS;
     uint nbitmap = (DSIZE / BSIZE - nmeta) / (8 * BSIZE) + 1;
     superblock sb(FSMAGIC, DSIZE / BSIZE, DSIZE / BSIZE - nmeta - nbitmap,
-                  NIBLOCKS, LOGSIZE, nbitmap,
+                  NINODES, LOGSIZE, nbitmap,
                   2, 2 + LOGSIZE,
                   2 + LOGSIZE + NIBLOCKS);
 

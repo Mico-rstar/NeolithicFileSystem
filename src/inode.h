@@ -1,16 +1,21 @@
 #include "log.h"
 
-// 枚举类型
-enum Type
+namespace InodeStructure
 {
-    FILE,
-    DIR,
-    FREE
+    // 枚举类型
+    enum Type
+    {
+        FREE,
+        FILE,
+        DIR
+
+    };
 };
+
 // inode structure on disk
 struct dinode
 {
-    Type type;
+    InodeStructure::Type type;
     uint nlink;
     uint size;
     uint addrs[NDIRECT + 1]; // 最后一个块是间接块
@@ -24,7 +29,7 @@ struct inode
     uint ref;
     bool valid;
 
-    Type type;
+    InodeStructure::Type type;
     uint nlink;
     uint size;
     uint addrs[NDIRECT + 1]; // 最后一个块是间接块
@@ -40,25 +45,21 @@ struct itable
 };
 
 // Inodes per block.
-#define IPB           (BSIZE / sizeof(struct dinode))
+#define IPB (BSIZE / sizeof(dinode))
 
 // Block containing inode i
-#define IBLOCK(i, sb)     ((i) / IPB + sb->inodestart)
+#define IBLOCK(i, start) ((i) / IPB + start)
 
 class Inode
 {
 private:
     itable itb;
 
-    // 单例模式
-    Logger &logger()
-    {
-        static Logger instance(*sb); // 延迟构造（函数首次调用时）
-        return instance;
-    }
     
+
     DiskDriver disk;
-    superblock *sb;
+    //superblock *sb;
+    superblock sb;
 
 public:
     Inode();
@@ -67,12 +68,20 @@ public:
     uint balloc();
     void bfree(uint);
 
-
     // inode allocation
     inode &iget(uint bn);
-    inode &ialloc(Type type);
+    inode &ialloc(InodeStructure::Type type);
     void iupdate(inode &ip);
     void iput(inode &ip);
     uint bmap(inode &ip, uint bn);
     void itrunc(inode &ip);
+    void ilock(inode &i);
+    void iunlock(inode &i);
+
+    // 单例模式
+    Logger &logger()
+    {
+        static Logger instance(sb); // 延迟构造（函数首次调用时）
+        return instance;
+    }
 };

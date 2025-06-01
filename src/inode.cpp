@@ -5,9 +5,9 @@
 // 扫描bitmap，找到一个空闲的块，并将对应bit设为1
 uint Inode::balloc()
 {
-    for (int i = 0; i < sb->nbitmap; i++)
+    for (int i = 0; i < sb.nbitmap; i++)
     {
-        buf &b = logger().read(sb->bmapstart + i);
+        buf &b = logger().read(sb.bmapstart + i);
         // 逐字节遍历
         for (int j = 0; j < BSIZE; j++)
         {
@@ -37,9 +37,10 @@ void Inode::bfree(uint block_num)
     uint byteoff = (block_num % NBB) / 8;
     // 偏移的bit
     uint bitoff = (block_num % NBB) % 8;
-    buf &b = logger().read(sb->bmapstart + blockoff);
+    buf &b = logger().read(sb.bmapstart + blockoff);
     uchar byte = b.data[byteoff];
     byte &= ~(1 << bitoff);
+    logger().relse(b);
 }
 
 Inode::Inode()
@@ -49,7 +50,10 @@ Inode::Inode()
     b.blockno = 1;
     b.valid = true;
     disk.virtio_disk_rw(b, 0);
-    sb = (superblock *)b.data;
+    superblock *ssb = (superblock *)b.data;
+    this->sb = superblock(ssb->magic, ssb->size, ssb->nblocks,
+                          ssb->ninodes, ssb->nlog, ssb->nbitmap,
+                          ssb->logstart, ssb->inodestart, ssb->bmapstart);
 
     logger();
 }
@@ -83,20 +87,21 @@ inode &Inode::iget(uint inum)
 
 // 遍历磁盘上的inode，找到一个空槽，进行初始化
 // 调用iget，将该inode缓存返回
-inode &Inode::ialloc(Type type)
+inode &Inode::ialloc(InodeStructure::Type type)
 {
     int inum;
     dinode *dip;
-    for (inum = 1; inum < sb->ninodes; inum++)
+    for (inum = 1; inum < sb.ninodes; inum++)
     {
-        buf &b = logger().read(IBLOCK(inum, sb));
+        // IBLOCK(inum, sb);
+        buf &b = logger().read(IBLOCK(inum, sb.inodestart));
         dip = (dinode *)b.data + inum % IPB;
-        if (dip->type == FREE)
+        if (dip->type == InodeStructure::FREE)
         { // a free inode
             std::memset(dip, 0, sizeof(*dip));
             dip->type = type;
             logger().write(b); // mark it allocated on the disk
-            logger().write(b);
+            logger().relse(b);
             return iget(inum);
         }
         logger().relse(b);
@@ -110,7 +115,7 @@ void Inode::iupdate(inode &ip)
 {
     dinode *dip;
 
-    buf &b = logger().read(IBLOCK(ip.inum, sb));
+    buf &b = logger().read(IBLOCK(ip.inum, sb.inodestart));
     // 指针运算
     dip = (dinode *)b.data + ip.inum % IPB;
     dip->type = ip.type;
@@ -138,7 +143,7 @@ void Inode::iput(inode &i)
         itb.lock.release();
 
         itrunc(i);
-        i.type = FREE;
+        i.type = InodeStructure::FREE;
         iupdate(i);
         i.valid = 0;
 
@@ -151,7 +156,7 @@ void Inode::iput(inode &i)
     itb.lock.release();
 }
 
-// 将文件的块号映射到磁盘的块号
+//  将inode的块号映射到磁盘的块号
 //  若该块不存在，则分配一个块，并更新磁盘
 //  若该块存在，则返回该块的块号
 //  返回0如果超过文件大小上限
@@ -231,4 +236,38 @@ void Inode::itrunc(inode &ip)
 
     ip.size = 0;
     iupdate(ip);
+}
+
+// 锁定inode
+// 如果缓存中inode为ivalid
+// 从磁盘读取进行同步
+void Inode::ilock(inode &i)
+{
+
+    struct dinode *dip;
+
+    i.lock.acquire();
+
+    if (i.valid == 0)
+    {
+        printf("%d\n", IBLOCK(i.inum, sb.inodestart));
+        buf &b = logger().read(IBLOCK(i.inum, sb.inodestart));
+        dip = (dinode *)b.data + i.inum % IPB;
+        i.type = dip->type;
+        i.nlink = dip->nlink;
+        i.size = dip->size;
+        memmove(i.addrs, dip->addrs, sizeof(i.addrs));
+        logger().relse(b);
+        i.valid = true;
+        if (i.type == InodeStructure::FREE)
+            dbg::panic("Inode::ilock: no type");
+    }
+}
+
+void Inode::iunlock(inode &i)
+{
+    if (!i.lock.holding())
+        dbg::panic("Inode::iunlock: lock");
+
+    i.lock.release();
 }
