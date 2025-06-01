@@ -61,6 +61,9 @@ private:
     // superblock *sb;
     superblock sb;
 
+    // get number of free block;
+    uint getnbf();
+
 public:
     Inode();
     // 单例模式
@@ -97,4 +100,6 @@ public:
     inode *nameiparent(char *path, char *name);
 
     void initRoot();
+
+    fsstat stat();
 };

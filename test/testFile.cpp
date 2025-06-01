@@ -7,18 +7,33 @@
 
 int main()
 {
-     File file;
-     int s1=file.mkdir("/test");
+     File f;
+     int s1=f.mkdir("/test");
      printf("s1=%d\n",s1);
+    
 
-     int s2=file.mkdir("/test/test1");
+
+
+    file *op=f.open("/test/test.t",true,true);
+    if(op!=nullptr)
+    {
+       f.write(op, "Helloc o World!",  strlen("Helloc o World!"));
+       char str[100];
+       memset(str, 0, 100);
+       op->off=0;
+       f.read(op, str,  strlen("Helloc o World!"));
+       printf("read=%s\n",str);
+       //assert(strcmp(str,"Helloc o World!")==0);
+
+
+    }
+    int s2=f.mkdir("/os");
      printf("s2=%d\n",s2);
 
-     int s3=file.mkdir("/os/oss");
-     printf("s3=%d\n",s3);
+     f.tree("/");
 
-     int s4=file.unlink( "/test/test1");
-      printf("s4=%d\n",s4);
+     fsstat fstat=f.fstat();
 
-     file.tree("/");
+     
+     printf("cnt=%d\n", fstat.nfb);
 }

@@ -82,6 +82,10 @@ void File::tree(char *path)
 
     in.dirtree(*in.namei(path), 0);
 }
+fsstat File::fstat()
+{
+    return in.stat();
+}
 inode *File::create(char *path, short type)
 {
     struct inode *ip, *dp;
@@ -170,6 +174,7 @@ file *File::open(char *path, bool readable, bool writable)
     struct file *f;
 
     ftable.lock.acquire();
+    in.logger().beginOP();
     for (f = ftable.file; f < ftable.file + NFILE; f++)
     {
         if (f->ref == 0)
@@ -177,10 +182,26 @@ file *File::open(char *path, bool readable, bool writable)
             f->ref = 1;
             f->readable = readable;
             f->writable = writable;
+            f->ip = in.namei(path);
+            if (f->ip == 0)
+            {
+                // 文件不存在,新建文件
+
+                if ((f->ip = create(path, file::FD_FILE)) == 0)
+                {
+                    in.logger().endOP();
+                    return 0;
+                }
+                in.iunlock(*f->ip);
+                in.iput(*f->ip);
+            }
+            in.logger().endOP();
             ftable.lock.release();
             return f;
         }
     }
+    in.logger().beginOP();
+
     ftable.lock.release();
     return 0;
 }

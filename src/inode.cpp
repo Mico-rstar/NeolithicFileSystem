@@ -44,6 +44,35 @@ void Inode::bfree(uint block_num)
     logger().relse(b);
 }
 
+// 遍历bitmap，统计空闲位数量
+uint Inode::getnbf()
+{
+    uint cnt=0;
+    for (int i = 0; i < sb.nbitmap; i++)
+    {
+        buf &b = logger().read(sb.bmapstart + i);
+        // 逐字节遍历
+        for (int j = 0; j < BSIZE; j++)
+        {
+            if (b.data[j] != 0xff)
+            {
+                for (int k = 0; k < 8; k++)
+                {
+                    if ((b.data[j] & (1 << k)) == 0)
+                    {
+                        cnt++;
+                    }
+                }
+            }else 
+            {
+                cnt += 8;
+            }
+        }
+        logger().relse(b);
+    }
+    return cnt;
+}
+
 Inode::Inode()
 {
     // read superblock
@@ -123,6 +152,13 @@ void Inode::initRoot()
     dip->nlink = 1;
     logger().write(b); // mark it allocated on the disk
     logger().relse(b);
+}
+
+fsstat Inode::stat()
+{
+    fsstat sta;
+    sta.nfb=getnbf();
+    return sta;
 }
 
 // 复制一个修改的in-memory inode到磁盘。

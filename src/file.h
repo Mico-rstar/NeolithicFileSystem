@@ -49,7 +49,6 @@ public:
     int read(file *f, char *buf, uint n);
 
     int write(file *f, char *buf, uint n);
-    // int seek(file &f, uint offset);
     // int unlink(char *path);
     int unlink(char *path);
 
@@ -58,4 +57,6 @@ public:
 
     // int rmdir(char *path);
     void tree(char *path);
+
+    fsstat fstat();
 };

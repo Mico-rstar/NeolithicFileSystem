@@ -58,3 +58,9 @@ struct dirent
 #define FSMAGIC 0x10203040
 
 const char IMGPATH[] = "./img/fs.img";
+
+
+struct fsstat
+{
+    uint nfb; // number of free block
+};
