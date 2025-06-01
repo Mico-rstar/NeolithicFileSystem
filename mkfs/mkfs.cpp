@@ -3,6 +3,7 @@
 #include "../src/fs.h"
 #include "../src/buffer.h"
 #include "../src/inode.h"
+#include "../src/inode.h"
 
 /**
  * @brief 将指定内存区域的指定位全部设置为1
@@ -111,9 +112,10 @@ void initDisk(Buffer &buffer, superblock &sb)
     initBitmap(buffer, sb);
 }
 
+
 int main()
 {
-    const uint NIBLOCKS = NINODES / (BSIZE / sizeof(dinode))+1;
+    const uint NIBLOCKS = NINODES / (BSIZE / sizeof(dinode)) + 1;
 
     uint nmeta = 2 + LOGSIZE + NIBLOCKS;
     uint nbitmap = (DSIZE / BSIZE - nmeta) / (8 * BSIZE) + 1;
@@ -125,4 +127,11 @@ int main()
     Buffer buffer;
 
     initDisk(buffer, sb);
+
+    Inode in;
+    in.logger().beginOP();
+    // create root
+    in.initRoot();
+    in.logger().endOP();
+    
 }

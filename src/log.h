@@ -1,4 +1,6 @@
 
+#pragma once
+
 #include "buffer.h"
 
 class Logger
