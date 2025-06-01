@@ -61,7 +61,12 @@ private:
 
 public:
     Inode();
-
+// 单例模式
+    Logger &logger()
+    {
+        static Logger instance(sb); // 延迟构造（函数首次调用时）
+        return instance;
+    }
     // block allocation
     uint balloc();
     void bfree(uint);
@@ -78,10 +83,10 @@ public:
 
     int readi(inode &i, char *dst, uint off, uint n);
     int writei(inode &i, char *src, uint off, uint n);
-    // 单例模式
-    Logger &logger()
-    {
-        static Logger instance(sb); // 延迟构造（函数首次调用时）
-        return instance;
-    }
+    
+
+    // dir operations
+    inode *dirlookup(struct inode &di, char *name, uint *poff);
+
+    int dirlink(inode &di, char *name, uint inum);
 };

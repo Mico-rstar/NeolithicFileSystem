@@ -41,6 +41,15 @@ struct superblock
                                                     inodestart(_inodestart), bmapstart(_bmapstart) {}
 };
 
+// Directory is a file containing a sequence of dirent structures.
+#define DIRSIZ 14
+
+struct dirent
+{
+    ushort inum;
+    char name[DIRSIZ];
+};
+
 #define FSMAGIC 0x10203040
 
 const char IMGPATH[] = "./img/fs.img";

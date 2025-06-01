@@ -310,11 +310,11 @@ int Inode::writei(inode &i, char *src, uint off, uint n)
 
     for (tot = 0; tot < n; tot += m, off += m, src += m)
     {
-        
+
         uint addr = bmap(i, off / BSIZE);
         if (addr == 0)
             break;
-        buf &b = logger().read( addr);
+        buf &b = logger().read(addr);
         m = std::min(n - tot, BSIZE - off % BSIZE);
         std::memmove(b.data + (off % BSIZE), src, m);
         logger().write(b);
@@ -327,4 +327,64 @@ int Inode::writei(inode &i, char *src, uint off, uint n)
     iupdate(i);
 
     return tot;
+}
+
+// 在目录中查找目录项
+// 如果找到，返回inode并将poff设置为该项在目录偏移量
+inode *Inode::dirlookup(inode &di, char *name, uint *poff)
+{
+    uint off, inum;
+    dirent de;
+
+    if (di.type != InodeStructure::DIR)
+        dbg::panic("Inode::dirlookup: not DIR");
+
+    for (off = 0; off < di.size; off += sizeof(de))
+    {
+        if (readi(di, (char *)&de, off, sizeof(de)) != sizeof(de))
+            dbg::panic("Inode::dirlookup: read");
+        if (de.inum == 0)
+            continue;
+        if (std::strcmp(name, de.name) == 0)
+        {
+            // entry matches path element
+            if (poff)
+                *poff = off;
+            inum = de.inum;
+            return &iget(inum);
+        }
+    }
+
+    return nullptr;
+}
+
+
+// add dir entry
+int Inode::dirlink(inode &dp, char *name, uint inum)
+{
+  int off;
+  struct dirent de;
+  struct inode *ip;
+
+  // Check that name is not present.
+  // if present, return -1
+  if((ip = dirlookup(dp, name, 0)) != 0){
+    iput(*ip);
+    return -1;
+  }
+
+  // Look for an empty dirent.
+  for(off = 0; off < dp.size; off += sizeof(de)){
+    if(readi(dp, (char *)&de, off, sizeof(de)) != sizeof(de))
+      dbg::panic("Inode::dirlink: read");
+    if(de.inum == 0)
+      break;
+  }
+
+  strncpy(de.name, name, DIRSIZ);
+  de.inum = inum;
+  if(writei(dp, (char *)&de, off, sizeof(de)) != sizeof(de))
+    return -1;
+
+  return 0;
 }
