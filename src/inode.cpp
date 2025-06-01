@@ -251,7 +251,6 @@ void Inode::ilock(inode &i)
 
     if (i.valid == 0)
     {
-        printf("%d\n", IBLOCK(i.inum, sb.inodestart));
         buf &b = logger().read(IBLOCK(i.inum, sb.inodestart));
         dip = (dinode *)b.data + i.inum % IPB;
         i.type = dip->type;
@@ -271,4 +270,61 @@ void Inode::iunlock(inode &i)
         dbg::panic("Inode::iunlock: lock");
 
     i.lock.release();
+}
+
+int Inode::readi(struct inode &i, char *dst, uint off, uint n)
+{
+    uint tot, m;
+
+    // 偏移量超过界限
+    if (off > i.size || off + n < off)
+        return 0;
+    if (off + n > i.size)
+        n = i.size - off;
+
+    for (tot = 0; tot < n; tot += m, off += m, dst += m)
+    {
+        uint addr = bmap(i, off / BSIZE);
+        if (addr == 0)
+            break;
+        buf &b = logger().read(addr);
+        // 读取数据长度：m不能超过块边界且不能超过长度限制
+        m = std::min(n - tot, BSIZE - off % BSIZE);
+
+        std::memmove(dst, b.data + off % BSIZE, m);
+
+        logger().relse(b);
+    }
+    return tot;
+}
+
+int Inode::writei(inode &i, char *src, uint off, uint n)
+{
+    uint tot, m;
+
+    // 边界处理
+    if (off > i.size || off + n < off)
+        return -1;
+    if (off + n > MAXFILE * BSIZE)
+        return -1;
+
+    for (tot = 0; tot < n; tot += m, off += m, src += m)
+    {
+        
+        uint addr = bmap(i, off / BSIZE);
+        if (addr == 0)
+            break;
+        buf &b = logger().read( addr);
+        m = std::min(n - tot, BSIZE - off % BSIZE);
+        std::memmove(b.data + (off % BSIZE), src, m);
+        logger().write(b);
+        logger().relse(b);
+    }
+
+    if (off > i.size)
+        i.size = off;
+
+    iupdate(i);
+
+    return tot;
 }

@@ -55,10 +55,8 @@ class Inode
 private:
     itable itb;
 
-    
-
     DiskDriver disk;
-    //superblock *sb;
+    // superblock *sb;
     superblock sb;
 
 public:
@@ -78,6 +76,8 @@ public:
     void ilock(inode &i);
     void iunlock(inode &i);
 
+    int readi(inode &i, char *dst, uint off, uint n);
+    int writei(inode &i, char *src, uint off, uint n);
     // 单例模式
     Logger &logger()
     {
