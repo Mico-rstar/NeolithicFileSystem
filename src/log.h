@@ -28,10 +28,14 @@ private:
 
     void writeTrans();
     void writeHead();
+    void readHead();
     void installTrans(int recovering);
+    void commit();
+    void recover();
 
 public:
-    Logger(superblock &sb);
+    friend class DiskInit;
+    Logger(const superblock &sb);
     void beginOP();
     void write(buf &buf);
     buf &read(uint blockno);

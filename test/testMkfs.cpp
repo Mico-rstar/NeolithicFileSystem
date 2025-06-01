@@ -3,7 +3,6 @@
 #include "../src/fs.h"
 #include "../src/buffer.h"
 #include "../src/inode.h"
-
 /**
  * @brief 将指定内存区域的指定位全部设置为1
  * @param ptr 起始地址
@@ -114,11 +113,10 @@ void initDisk(Buffer &buffer, superblock &sb)
 int main()
 {
     const uint NIBLOCKS = NINODES / (BSIZE / sizeof(dinode))+1;
-
     uint nmeta = 2 + LOGSIZE + NIBLOCKS;
     uint nbitmap = (DSIZE / BSIZE - nmeta) / (8 * BSIZE) + 1;
     superblock sb(FSMAGIC, DSIZE / BSIZE, DSIZE / BSIZE - nmeta - nbitmap,
-                  NINODES, LOGSIZE, nbitmap,
+                  NIBLOCKS, LOGSIZE, nbitmap,
                   2, 2 + LOGSIZE,
                   2 + LOGSIZE + NIBLOCKS);
 

@@ -10,6 +10,8 @@ private:
     Bcache bcache;
     DiskDriver disk;
 
+   
+
 public:
     Buffer();
     buf &bread(uint);

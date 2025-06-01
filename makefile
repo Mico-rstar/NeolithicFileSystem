@@ -8,9 +8,11 @@ LDLIBS :=
 SRC_DIR := src
 TEST_DIR := test
 
+
 # 查找所有源文件和测试文件
 SRCS := $(wildcard $(SRC_DIR)/*.cpp)
 TEST_SRCS := $(wildcard $(TEST_DIR)/test*.cpp)
+
 
 # 生成对应的目标文件和可执行文件
 OBJS := $(SRCS:.cpp=.o)
@@ -18,6 +20,8 @@ TEST_EXES := $(patsubst $(TEST_DIR)/%.cpp, %, $(TEST_SRCS))
 
 # 默认目标
 all: $(TEST_EXES)
+
+
 
 # 编译测试可执行文件
 %: $(TEST_DIR)/%.cpp $(OBJS)
