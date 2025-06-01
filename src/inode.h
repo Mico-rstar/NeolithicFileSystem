@@ -89,4 +89,5 @@ public:
     inode *dirlookup(struct inode &di, char *name, uint *poff);
 
     int dirlink(inode &di, char *name, uint inum);
+    inode *namex(char *path, int nameiparent, char *name);
 };

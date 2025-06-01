@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 
+#define ROOTINO  1   // root i-number
+
 #define BSIZE 1024                // block size
 #define DSIZE (8 * 1024 * 1024)   // disk size
 #define MAXOPBLOCKS 10            // max # of blocks any FS op writes
